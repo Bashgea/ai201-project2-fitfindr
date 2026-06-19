@@ -43,8 +43,39 @@ def handle_query(user_query: str, wardrobe_choice: str) -> tuple[str, str, str]:
            string and return it along with session["outfit_suggestion"] and
            session["fit_card"].
     """
-    # TODO: implement this function
-    return "Agent not yet implemented.", "", ""
+    # Step 1: guard against empty query
+    if not user_query or not user_query.strip():
+        return "Please enter a search query.", "", ""
+
+    # Step 2: select wardrobe
+    if wardrobe_choice == "Example wardrobe":
+        wardrobe = get_example_wardrobe()
+    else:
+        wardrobe = get_empty_wardrobe()
+
+    # Step 3: run the agent
+    session = run_agent(user_query.strip(), wardrobe)
+
+    # Step 4: error path — show message in first panel, leave others blank
+    if session["error"]:
+        return session["error"], "", ""
+
+    # Step 5: format the selected listing into a readable string
+    item = session["selected_item"]
+    brand = item.get("brand") or "—"
+    listing_text = (
+        f"Title:     {item.get('title', 'N/A')}\n"
+        f"Price:     ${item.get('price', 'N/A')}\n"
+        f"Platform:  {item.get('platform', 'N/A')}\n"
+        f"Condition: {item.get('condition', 'N/A')}\n"
+        f"Size:      {item.get('size', 'N/A')}\n"
+        f"Colors:    {', '.join(item.get('colors', []))}\n"
+        f"Style:     {', '.join(item.get('style_tags', []))}\n"
+        f"Brand:     {brand}\n\n"
+        f"Description:\n{item.get('description', 'N/A')}"
+    )
+
+    return listing_text, session["outfit_suggestion"], session["fit_card"]
 
 
 # ── interface ─────────────────────────────────────────────────────────────────
